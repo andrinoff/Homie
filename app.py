@@ -59,7 +59,7 @@ ALLOWED_GROUPS = [group.strip() for group in os.getenv('ALLOWED_GROUPS', '').spl
 ADMIN_EMAILS = [email.strip() for email in os.getenv('ADMIN_EMAILS', '').split(',') if email.strip()]
 
 # Database setup
-DATABASE = 'homie.db'
+DATABASE = '/app/data/homie.db'
 
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
@@ -115,6 +115,8 @@ def parse_date(date_string):
 
 def init_db():
     """Initialize the database with required tables"""
+    # Ensure the data directory exists
+    os.makedirs('/app/data', exist_ok=True)
     conn = get_db_connection()
     
     # Users table (simplified for OIDC-only)
