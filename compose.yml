@@ -8,7 +8,26 @@ services:
     volumes:
       - ./data:/app/data
     environment:
+      # Flask Configuration
       - FLASK_ENV=production
       - PYTHONUNBUFFERED=1
-    env_file:
-      - .env
+      
+      # Security
+      - FLASK_SECRET_KEY=your-very-secure-secret-key-here-change-this
+      
+      # OIDC Authentication (replace with your provider details)
+      - OIDC_ISSUER=https://your-oidc-provider.com
+      - OIDC_CLIENT_ID=your-client-id
+      - OIDC_CLIENT_SECRET=your-client-secret
+      - OIDC_REDIRECT_URI=http://localhost:5000/auth/callback
+      
+      # Optional: Manual OIDC endpoints (if auto-discovery doesn't work)
+      # - OIDC_AUTHORIZATION_ENDPOINT=https://your-provider.com/auth
+      # - OIDC_TOKEN_ENDPOINT=https://your-provider.com/token
+      # - OIDC_USERINFO_ENDPOINT=https://your-provider.com/userinfo
+      # - OIDC_END_SESSION_ENDPOINT=https://your-provider.com/logout
+      
+      # Access Control (comma-separated)
+      - ALLOWED_EMAILS=user1@example.com,user2@example.com
+      - ALLOWED_GROUPS=family,admins
+      - ADMIN_EMAILS=admin@example.com
