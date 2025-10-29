@@ -104,9 +104,20 @@ def create_app():
         """Handle OIDC callback"""
         # Validate state parameter
         state = request.args.get('state')
-        if not state or state != session.get('oidc_state'):
-            logger.warning(f"Invalid state in callback: {request.remote_addr}")
-            flash('Invalid authentication state', 'error')
+        session_state = session.get('oidc_state')
+        
+        logger.info(f"Callback received - State: {state[:10] if state else 'None'}..., Session state: {session_state[:10] if session_state else 'None'}...")
+        
+        if not state or state != session_state:
+            if not state:
+                logger.warning(f"No state parameter in callback: {request.remote_addr}")
+                flash('Missing authentication state parameter', 'error')
+            elif not session_state:
+                logger.warning(f"No state in session during callback: {request.remote_addr}")
+                flash('Session expired during authentication', 'error')
+            else:
+                logger.warning(f"State mismatch in callback: {request.remote_addr}")
+                flash('Authentication state mismatch', 'error')
             return redirect(url_for('login'))
         
         # Get authorization code

@@ -21,6 +21,10 @@ services:
       - OIDC_CLIENT_SECRET=your-client-secret
       - OIDC_REDIRECT_URI=http://localhost:5000/auth/callback
       
+      # Session Configuration (for HTTPS deployments)
+      - BASE_URL=http://localhost:5000
+      - SESSION_COOKIE_SECURE=false
+      
       # Manual endpoints (uncomment if auto-discovery fails)
       # - OIDC_AUTHORIZATION_ENDPOINT=https://your-provider.com/application/o/authorize/
       # - OIDC_TOKEN_ENDPOINT=https://your-provider.com/application/o/token/
