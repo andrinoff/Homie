@@ -7,7 +7,7 @@
     <!-- Welcome Header -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-            <span id="greeting">Good day</span>, {{ session.username|title_case }}!
+            <span id="greeting">Good day</span>, {{ session['user']['username']|title_case }}!
         </h1>
         <p class="mt-2 text-gray-600 dark:text-gray-400">
             Here's what's happening in your home today.

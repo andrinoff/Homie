@@ -51,6 +51,14 @@ def create_app():
     def inject_csrf_token():
         return dict(csrf_token=generate_csrf_token)
     
+    # Add custom Jinja filters
+    @app.template_filter('title_case')
+    def title_case_filter(text):
+        """Convert text to title case"""
+        if not text:
+            return text
+        return ' '.join(word.capitalize() for word in str(text).split())
+    
     # ===== ERROR HANDLERS =====
     
     @app.errorhandler(403)

@@ -118,6 +118,15 @@ def load_access_control():
     if not config['allowed_emails']:
         config['allowed_emails'] = config['admin_emails']
     
+    # Add allowed domains for redirect validation
+    base_url = os.getenv('BASE_URL', 'http://localhost:5000')
+    parsed_base = base_url.replace('http://', '').replace('https://', '')
+    config['allowed_domains'] = [
+        'localhost:5000',
+        '127.0.0.1:5000',
+        parsed_base
+    ]
+    
     return config
 
 def get_app_config():

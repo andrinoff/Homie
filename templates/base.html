@@ -169,7 +169,7 @@
 </head>
 <body class="h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-300 ios-scroll">
     <div class="min-h-full">
-        {% if session.user_id %}
+        {% if session['user'] %}
         <!-- Navigation -->
         <nav class="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 theme-transition">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -205,7 +205,7 @@
                         <div class="relative">
                             <button id="user-menu-button" class="flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-2">
                                 <i class="fas fa-user-circle mr-2 text-lg"></i>
-                                <span>{{ session.username|title_case }}</span>
+                                <span>{{ session['user']['username']|title_case }}</span>
                                 <i class="fas fa-chevron-down ml-1"></i>
                             </button>
                             <div id="user-menu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-50 theme-transition">
@@ -263,7 +263,7 @@
         {% endwith %}
 
         <!-- Main Content -->
-        <main class="{% if session.user_id %}pt-20 pb-10{% endif %}">
+        <main class="{% if session['user'] %}pt-20 pb-10{% endif %}">
             {% block content %}{% endblock %}
         </main>
     </div>
