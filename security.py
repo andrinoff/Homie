@@ -7,7 +7,14 @@ import logging
 from functools import wraps
 from flask import session, request, jsonify, abort, current_app
 from urllib.parse import urlparse
-import bleach
+
+# Import bleach with fallback for local development
+try:
+    import bleach
+    BLEACH_AVAILABLE = True
+except ImportError:
+    BLEACH_AVAILABLE = False
+    logging.warning("bleach not available - HTML sanitization will use basic escaping")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -40,9 +47,30 @@ def sanitize_html_input(text):
     """Sanitize HTML input to prevent XSS"""
     if not text:
         return text
-    # Allow minimal safe tags, strip everything else
-    allowed_tags = ['b', 'i', 'em', 'strong']
-    return bleach.clean(text, tags=allowed_tags, strip=True)
+    
+    if BLEACH_AVAILABLE:
+        # Allow minimal safe tags, strip everything else
+        allowed_tags = ['b', 'i', 'em', 'strong']
+        return bleach.clean(text, tags=allowed_tags, strip=True)
+    else:
+        # Fallback: escape HTML entities
+        import html
+        return html.escape(text)
+
+def sanitize_input(text):
+    """Sanitize text input by stripping HTML and normalizing"""
+    if not text:
+        return text
+    
+    if BLEACH_AVAILABLE:
+        # Strip all HTML tags and normalize whitespace
+        clean_text = bleach.clean(text, tags=[], strip=True)
+        return ' '.join(clean_text.split())
+    else:
+        # Fallback: basic cleaning without HTML stripping
+        import html
+        escaped = html.escape(text)
+        return ' '.join(escaped.split())
 
 def validate_redirect_url(url, allowed_domains):
     """Validate redirect URL against allowed domains"""
@@ -68,6 +96,15 @@ def safe_delete_item(conn, table, item_id, user_id, id_column='id', user_column=
     query = f"DELETE FROM {table} WHERE {id_column} = ? AND {user_column} = ?"
     result = conn.execute(query, (item_id, user_id))
     return result.rowcount > 0
+
+def validate_ownership(conn, table, item_id, user):
+    """Validate that user owns item or is admin"""
+    # Admins can access anything
+    if user.get('is_admin', False):
+        return True
+    
+    # Check if user owns the item
+    return check_ownership(conn, table, item_id, user['id'])
 
 def log_security_event(event_type, details, user_id=None):
     """Log security-related events"""
