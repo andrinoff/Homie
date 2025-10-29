@@ -162,7 +162,7 @@ def get_dashboard_stats():
         'shopping_count': shopping_count,
         'chores_count': chores_count, 
         'expiring_count': expiring_count,
-        'bills_total': bills_total
+        'monthly_total': bills_total
     }
 
 def create_or_update_user(userinfo, access_control):
