@@ -270,33 +270,37 @@ function confirmAction(message) {
 }
 
 function toggleComplete(itemId, type, element) {
-    fetch(`/toggle_${type}/${itemId}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': window.csrfToken
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // For shopping list, handle DOM updates without page reload
-            if (type === 'shopping') {
-                updateShoppingItemDOM(itemId, data.item, element);
-            } else if (type === 'chore') {
-                updateChoreItemDOM(itemId, data.chore, element);
-            } else {
-                // For other types, still reload for now
-                location.reload();
-            }
-        } else {
-            alert('Error updating item');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error updating item');
-    });
+    // Create a form and submit it instead of using fetch
+    const form = document.createElement('form');
+    form.method = 'POST';
+    
+    // Set the correct action URL based on type
+    if (type === 'shopping') {
+        form.action = '/shopping/toggle';
+    } else if (type === 'chore') {
+        form.action = '/chores/complete';
+    } else {
+        form.action = `/toggle_${type}`;
+    }
+    
+    // Add the item ID as a hidden field
+    const idInput = document.createElement('input');
+    idInput.type = 'hidden';
+    
+    if (type === 'chore') {
+        idInput.name = 'chore_id';
+    } else if (type === 'shopping') {
+        idInput.name = 'item_id';
+    } else {
+        idInput.name = 'id';
+    }
+    
+    idInput.value = itemId;
+    form.appendChild(idInput);
+    
+    // Add form to document and submit
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function updateShoppingItemDOM(itemId, itemData, element) {

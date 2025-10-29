@@ -14,7 +14,7 @@ expiry_bp = Blueprint('expiry', __name__)
 
 @expiry_bp.route('/expiry')
 @login_required
-def expiry_tracker():
+def expiry_list():
     """Display the expiry tracker page"""
     conn = get_db_connection()
     
@@ -59,7 +59,7 @@ def add_expiry():
         
         conn = get_db_connection()
         conn.execute('''
-            INSERT INTO expiry_tracker (item_name, expiry_date, added_by)
+            INSERT INTO expiry_items (item_name, expiry_date, added_by)
             VALUES (?, ?, ?)
         ''', (item_name, expiry_date, user_id))
         conn.commit()
@@ -137,14 +137,14 @@ def delete_expiry():
         conn = get_db_connection()
         
         # Check if item exists and user has permission
-        item = conn.execute('SELECT * FROM expiry_tracker WHERE id = ?', (item_id,)).fetchone()
+        item = conn.execute('SELECT * FROM expiry_items WHERE id = ?', (item_id,)).fetchone()
         if not item:
             conn.close()
             flash('Item not found', 'error')
             return redirect(url_for('expiry.expiry_list'))
         
         # Delete the item
-        conn.execute('DELETE FROM expiry_tracker WHERE id = ?', (item_id,))
+        conn.execute('DELETE FROM expiry_items WHERE id = ?', (item_id,))
         conn.commit()
         conn.close()
         

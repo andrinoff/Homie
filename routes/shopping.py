@@ -135,6 +135,90 @@ def toggle_shopping_item(item_id):
         logger.error(f"Error toggling shopping item {item_id}: {e}")
         return jsonify({'error': 'Failed to toggle item'}), 500
 
+@shopping_bp.route('/shopping/delete', methods=['POST'])
+@login_required
+def delete_shopping_item():
+    """Delete a shopping item via form submission"""
+    try:
+        item_id = request.form.get('item_id')
+        if not item_id:
+            flash('Item ID is required', 'error')
+            return redirect(url_for('shopping.shopping_list'))
+        
+        try:
+            item_id = int(item_id)
+        except (ValueError, TypeError):
+            flash('Invalid item ID', 'error')
+            return redirect(url_for('shopping.shopping_list'))
+        
+        user_id = session['user']['id']
+        
+        conn = get_db_connection()
+        
+        # Check if item exists and user has permission
+        item = conn.execute('SELECT * FROM shopping_items WHERE id = ?', (item_id,)).fetchone()
+        if not item:
+            conn.close()
+            flash('Item not found', 'error')
+            return redirect(url_for('shopping.shopping_list'))
+        
+        # Delete the item
+        conn.execute('DELETE FROM shopping_items WHERE id = ?', (item_id,))
+        conn.commit()
+        conn.close()
+        
+        logger.info(f"User {user_id} deleted shopping item {item_id}")
+        flash('Shopping item deleted successfully', 'success')
+        return redirect(url_for('shopping.shopping_list'))
+        
+    except Exception as e:
+        logger.error(f"Error deleting shopping item: {e}")
+        flash('Failed to delete shopping item', 'error')
+        return redirect(url_for('shopping.shopping_list'))
+
+@shopping_bp.route('/shopping/toggle', methods=['POST'])
+@login_required
+def toggle_shopping_item():
+    """Toggle shopping item completion via form submission"""
+    try:
+        item_id = request.form.get('item_id')
+        if not item_id:
+            flash('Item ID is required', 'error')
+            return redirect(url_for('shopping.shopping_list'))
+        
+        try:
+            item_id = int(item_id)
+        except (ValueError, TypeError):
+            flash('Invalid item ID', 'error')
+            return redirect(url_for('shopping.shopping_list'))
+        
+        user_id = session['user']['id']
+        
+        conn = get_db_connection()
+        
+        # Get current status
+        item = conn.execute('SELECT * FROM shopping_items WHERE id = ?', (item_id,)).fetchone()
+        if not item:
+            conn.close()
+            flash('Item not found', 'error')
+            return redirect(url_for('shopping.shopping_list'))
+        
+        # Toggle completion status
+        new_status = 0 if item['completed'] else 1
+        conn.execute('UPDATE shopping_items SET completed = ? WHERE id = ?', (new_status, item_id))
+        conn.commit()
+        conn.close()
+        
+        action = "completed" if new_status else "uncompleted"
+        logger.info(f"User {user_id} {action} shopping item {item_id}")
+        flash(f'Shopping item marked as {action}', 'success')
+        return redirect(url_for('shopping.shopping_list'))
+        
+    except Exception as e:
+        logger.error(f"Error toggling shopping item: {e}")
+        flash('Failed to toggle shopping item', 'error')
+        return redirect(url_for('shopping.shopping_list'))
+
 @shopping_bp.route('/api/shopping/delete/<int:item_id>', methods=['DELETE'])
 @api_auth_required
 @csrf_protect

@@ -103,6 +103,34 @@ def init_db():
         )
     ''')
     
+    # Create alternative table names for compatibility (if they don't exist)
+    # Some routes expect shopping_list instead of shopping_items
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS shopping_list (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_name TEXT NOT NULL,
+            completed BOOLEAN DEFAULT FALSE,
+            added_by INTEGER NOT NULL,
+            completed_by INTEGER,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            completed_at TIMESTAMP,
+            FOREIGN KEY (added_by) REFERENCES users (id),
+            FOREIGN KEY (completed_by) REFERENCES users (id)
+        )
+    ''')
+    
+    # Some routes expect expiry_tracker instead of expiry_items  
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS expiry_tracker (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_name TEXT NOT NULL,
+            expiry_date DATE NOT NULL,
+            added_by INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (added_by) REFERENCES users (id)
+        )
+    ''')
+
     # Add missing columns to existing tables (migrations)
     try:
         conn.execute('ALTER TABLE shopping_items ADD COLUMN completed BOOLEAN DEFAULT FALSE')
