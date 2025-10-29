@@ -160,8 +160,8 @@ def delete_expiry():
 @expiry_bp.route('/api/expiry/delete/<int:item_id>', methods=['DELETE'])
 @api_auth_required
 @csrf_protect
-def delete_expiry_item(item_id):
-    """Delete an expiry item"""
+def delete_expiry_item_api(item_id):
+    """Delete an expiry item via API"""
     try:
         conn = get_db_connection()
         

@@ -178,7 +178,7 @@ def delete_shopping_item():
 
 @shopping_bp.route('/shopping/toggle', methods=['POST'])
 @login_required
-def toggle_shopping_item():
+def toggle_shopping_item_form():
     """Toggle shopping item completion via form submission"""
     try:
         item_id = request.form.get('item_id')
@@ -222,8 +222,8 @@ def toggle_shopping_item():
 @shopping_bp.route('/api/shopping/delete/<int:item_id>', methods=['DELETE'])
 @api_auth_required
 @csrf_protect
-def delete_shopping_item(item_id):
-    """Delete a shopping item"""
+def delete_shopping_item_api(item_id):
+    """Delete a shopping item via API"""
     try:
         conn = get_db_connection()
         
