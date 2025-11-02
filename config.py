@@ -22,51 +22,66 @@ def get_oidc_configuration():
         'client_secret': os.getenv('OIDC_CLIENT_SECRET', ''),
     }
     
-    # Try auto-discovery first
-    try:
-        discovery_url = urljoin(oidc_base_url, '/.well-known/openid_configuration')
-        logger.info(f"Attempting OIDC discovery at: {discovery_url}")
-        
-        response = requests.get(discovery_url, timeout=10)
-        response.raise_for_status()
-        
-        # Check if response has content
-        if not response.text.strip():
-            raise ValueError("Empty response from OIDC discovery endpoint")
-        
+    # Try auto-discovery first - try both common endpoint variations
+    discovery_endpoints = [
+        '/.well-known/openid_configuration',  # Standard endpoint (underscore)
+        '/.well-known/openid-configuration'   # Alternative endpoint (hyphen)
+    ]
+    
+    discovery_errors = []  # Collect errors to log only if all attempts fail
+    
+    for endpoint in discovery_endpoints:
         try:
-            discovered_config = response.json()
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON from OIDC discovery endpoint. Response: {response.text[:200]}")
-            raise ValueError(f"Invalid JSON response: {e}")
-        
-        # Validate required fields
-        required_fields = ['issuer', 'authorization_endpoint', 'token_endpoint', 'userinfo_endpoint']
-        missing_fields = [field for field in required_fields if field not in discovered_config]
-        
-        if missing_fields:
-            raise ValueError(f"Missing required OIDC fields: {missing_fields}")
-        
-        # Use discovered endpoints
-        config.update({
-            'issuer': discovered_config['issuer'],
-            'authorization_endpoint': discovered_config['authorization_endpoint'],
-            'token_endpoint': discovered_config['token_endpoint'],
-            'userinfo_endpoint': discovered_config['userinfo_endpoint'],
-            'jwks_uri': discovered_config.get('jwks_uri', ''),
-            'end_session_endpoint': discovered_config.get('end_session_endpoint', ''),
-            'scopes_supported': discovered_config.get('scopes_supported', ['openid', 'profile', 'email']),
-        })
-        
-        logger.info("OIDC auto-discovery successful")
-        return config
-        
-    except requests.RequestException as e:
-        logger.warning(f"OIDC auto-discovery failed (network error): {e}")
-    except ValueError as e:
-        logger.warning(f"OIDC auto-discovery failed (invalid response): {e}")
-    except Exception as e:
-        logger.warning(f"OIDC auto-discovery failed (unexpected error): {e}")
+            discovery_url = urljoin(oidc_base_url, endpoint)
+            logger.info(f"Attempting OIDC discovery at: {discovery_url}")
+            
+            response = requests.get(discovery_url, timeout=10)
+            response.raise_for_status()
+            
+            # Check if response has content
+            if not response.text.strip():
+                discovery_errors.append(f"Empty response from {discovery_url}")
+                continue  # Try next endpoint
+            
+            try:
+                discovered_config = response.json()
+            except json.JSONDecodeError as e:
+                discovery_errors.append(f"Invalid JSON from {discovery_url}: {e}")
+                continue  # Try next endpoint
+            
+            # Validate required fields
+            required_fields = ['issuer', 'authorization_endpoint', 'token_endpoint', 'userinfo_endpoint']
+            missing_fields = [field for field in required_fields if field not in discovered_config]
+            
+            if missing_fields:
+                discovery_errors.append(f"Missing required OIDC fields from {discovery_url}: {missing_fields}")
+                continue  # Try next endpoint
+            
+            # Use discovered endpoints
+            config.update({
+                'issuer': discovered_config['issuer'],
+                'authorization_endpoint': discovered_config['authorization_endpoint'],
+                'token_endpoint': discovered_config['token_endpoint'],
+                'userinfo_endpoint': discovered_config['userinfo_endpoint'],
+                'jwks_uri': discovered_config.get('jwks_uri', ''),
+                'end_session_endpoint': discovered_config.get('end_session_endpoint', ''),
+                'scopes_supported': discovered_config.get('scopes_supported', ['openid', 'profile', 'email']),
+            })
+            
+            logger.info(f"OIDC auto-discovery successful from: {discovery_url}")
+            return config
+            
+        except requests.RequestException as e:
+            discovery_errors.append(f"Network error from {discovery_url}: {e}")
+            continue  # Try next endpoint
+        except Exception as e:
+            discovery_errors.append(f"Unexpected error from {discovery_url}: {e}")
+            continue  # Try next endpoint
+    
+    # If we reach here, all discovery attempts failed - now log the errors
+    logger.warning("All OIDC auto-discovery endpoints failed")
+    for error in discovery_errors:
+        logger.warning(f"Discovery error: {error}")
     
     # Fallback to manual configuration
     logger.info("Falling back to manual OIDC endpoint configuration")

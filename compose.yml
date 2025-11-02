@@ -4,33 +4,41 @@ services:
     container_name: homie
     restart: unless-stopped
     ports:
-      - "5000:5000"
+      - "5000:5000"  # Change left port to match your PORT env var if different
     volumes:
-      - ./data:/app/data
+      - ./data:/app/data  # SQLite database storage
     environment:
-      # Flask Configuration
-      - FLASK_ENV=production
-      - PYTHONUNBUFFERED=1
+      # ===== Flask Configuration =====
+      - SECRET_KEY=your-secret-key-here-change-in-production
+      - FLASK_DEBUG=false
+      - BASE_URL=http://localhost:5000
+      - PORT=5000
       
-      # Security
-      - FLASK_SECRET_KEY=your-very-secure-secret-key-here-change-this
+      # ===== Database Configuration =====
+      - DATABASE_PATH=/app/data/homie.db
       
-      # OIDC Authentication (replace with your provider details)
+      # ===== OIDC Authentication Configuration =====
+      # Replace with your OIDC provider details
       - OIDC_BASE_URL=https://your-oidc-provider.com
       - OIDC_CLIENT_ID=your-client-id
       - OIDC_CLIENT_SECRET=your-client-secret
-      - OIDC_REDIRECT_URI=http://localhost:5000/auth/callback
       
-      # Session Configuration (for HTTPS deployments)
-      - BASE_URL=http://localhost:5000
+      # ===== Access Control Configuration =====
+      # Admin email addresses (comma-separated)
+      - ADMIN_EMAILS=admin@example.com
+      # Allowed email addresses (comma-separated, if empty will use admin emails)
+      - ALLOWED_EMAILS=user1@example.com,user2@example.com,admin@example.com
+      
+      # ===== Security Configuration =====
+      # Enable secure cookies (set to true in production with HTTPS)
       - SESSION_COOKIE_SECURE=false
       
-      # Manual endpoints (uncomment if auto-discovery fails)
-      # - OIDC_AUTHORIZATION_ENDPOINT=https://your-provider.com/application/o/authorize/
-      # - OIDC_TOKEN_ENDPOINT=https://your-provider.com/application/o/token/
-      # - OIDC_USERINFO_ENDPOINT=https://your-provider.com/application/o/userinfo/
+      # ===== Logging Configuration =====
+      - LOG_LEVEL=INFO
       
-      # Access Control (comma-separated)
-      - ALLOWED_EMAILS=user1@example.com,user2@example.com
-      - ALLOWED_GROUPS=family,admins
-      - ADMIN_EMAILS=admin@example.com
+      # ===== Docker Configuration =====
+      - PYTHONUNBUFFERED=1
+    
+    # Optional: Use .env file instead of inline environment variables
+    # Uncomment the line below and create a .env file with your configuration
+    # env_file: .env
