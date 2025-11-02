@@ -24,6 +24,8 @@ A simple family utility app for managing household tasks with secure authenticat
    - Note your client ID and secret
 
 3. **Edit the compose.yml file:**
+
+   **For OIDC Authentication:**
    ```yaml
    - SECRET_KEY=your-random-secret-key-here
    - OIDC_ENABLED=true
@@ -31,6 +33,13 @@ A simple family utility app for managing household tasks with secure authenticat
    - OIDC_CLIENT_ID=your-client-id
    - OIDC_CLIENT_SECRET=your-client-secret
    - ALLOWED_EMAILS=your-email@example.com
+   ```
+
+   **For Local Authentication (Family Mode):**
+   ```yaml
+   - SECRET_KEY=your-random-secret-key-here
+   - OIDC_ENABLED=false
+   - USERS=dad:dad@family.com:Dad,mom:mom@family.com:Mom,kid:kid@family.com:Kid
    ```
 
 4. **Start:**
@@ -47,9 +56,14 @@ Copy `.env.sample` to `.env` and fill in your values, or edit the environment va
 **Required settings:**
 - `SECRET_KEY` - Random string for security
 - `OIDC_ENABLED` - Enable/disable OIDC authentication (default: true)
-- `OIDC_BASE_URL` - Your authentication provider URL (when OIDC enabled)
-- `OIDC_CLIENT_ID` & `OIDC_CLIENT_SECRET` - From your OIDC provider (when OIDC enabled)
-- `ALLOWED_EMAILS` - Who can access the app (when OIDC enabled)
+
+**For OIDC mode (OIDC_ENABLED=true):**
+- `OIDC_BASE_URL` - Your authentication provider URL
+- `OIDC_CLIENT_ID` & `OIDC_CLIENT_SECRET` - From your OIDC provider
+- `ALLOWED_EMAILS` - Who can access the app
+
+**For Local mode (OIDC_ENABLED=false):**
+- `USERS` - Local users in format: `username1:email1:Full Name 1,username2:email2:Full Name 2`
 
 **Important:** Configure `{your-base-url}/auth/callback` as the callback URL in your OIDC provider.
 
@@ -57,10 +71,23 @@ Copy `.env.sample` to `.env` and fill in your values, or edit the environment va
 
 Homie supports two authentication modes:
 
-- **OIDC Mode** (default): Use external OIDC provider (Keycloak, Auth0, etc.)
-- **Local Mode** (coming soon): Local user accounts with username/password
+### OIDC Mode (default)
+Use external OIDC provider (Keycloak, Auth0, etc.)
+- Set `OIDC_ENABLED=true`
+- Configure your OIDC provider details
+- Users authenticate through your SSO provider
 
-To disable OIDC and prepare for local accounts, set `OIDC_ENABLED=false` in your environment.
+### Local Mode
+Simple user selection without passwords - perfect for family use
+- Set `OIDC_ENABLED=false`
+- Configure `USERS` environment variable
+- Users click their name to login
+
+**Example local users setup:**
+```bash
+OIDC_ENABLED=false
+USERS=dad:dad@family.com:Dad,mom:mom@family.com:Mom,child1:child@family.com:Child One
+```
 
 ## Development
 

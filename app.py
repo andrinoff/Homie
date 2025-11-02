@@ -13,7 +13,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 # Import our custom modules
-from config import get_app_config, get_oidc_configuration, load_access_control, setup_logging
+from config import get_app_config, get_oidc_configuration, load_access_control, setup_logging, load_local_users
 from database import init_db, get_dashboard_stats, get_recent_activities
 from authentication import (
     login_required, admin_required, generate_state, generate_nonce,
@@ -111,8 +111,8 @@ def create_app():
         
         # Check if OIDC is enabled
         if not app_config['OIDC_ENABLED']:
-            flash('Local authentication is not yet implemented', 'error')
-            return render_template('login.html', oidc_enabled=False)
+            # Redirect to local login for user selection
+            return redirect(url_for('local_login'))
         
         # OIDC Authentication
         if not oidc_config:
@@ -245,12 +245,64 @@ def create_app():
     
     @app.route('/local_login')
     def local_login():
-        """Local authentication login page (placeholder for future implementation)"""
+        """Local authentication login page with user selection"""
         if 'user' in session:
             return redirect(url_for('dashboard'))
         
-        flash('Local authentication is not yet implemented. Please enable OIDC authentication.', 'warning')
-        return render_template('login.html', oidc_enabled=False, local_mode=True)
+        local_users = load_local_users()
+        # Ensure CSRF token is generated for the session
+        generate_csrf_token()
+        
+        return render_template('login.html', 
+                             oidc_enabled=False, 
+                             local_mode=True, 
+                             local_users=local_users)
+    
+    @app.route('/local_login_auth', methods=['POST'])
+    @csrf_protect
+    def local_login_auth():
+        """Handle local user authentication"""
+        if 'user' in session:
+            return redirect(url_for('dashboard'))
+        
+        username = request.form.get('username')
+        if not username:
+            flash('Invalid user selection', 'error')
+            return redirect(url_for('local_login'))
+        
+        # Find the user in the local users list
+        local_users = load_local_users()
+        selected_user = None
+        for user in local_users:
+            if user['username'] == username:
+                selected_user = user
+                break
+        
+        if not selected_user:
+            flash('User not found', 'error')
+            return redirect(url_for('local_login'))
+        
+        # Create/update user in database and create session
+        from database import create_or_update_local_user
+        user = create_or_update_local_user(selected_user)
+        
+        if not user:
+            logger.error(f"Failed to create/update local user: {selected_user}")
+            flash('Login failed - user could not be created', 'error')
+            return redirect(url_for('local_login'))
+        
+        session['user'] = {
+            'id': user['id'],
+            'username': user['username'],
+            'email': user['email'],
+            'full_name': user['full_name'],
+            'is_admin': user['is_admin']
+        }
+        
+        logger.info(f"Local user logged in: {user['email']}")
+        
+        flash(f'Welcome, {user["full_name"]}!', 'success')
+        return redirect(url_for('dashboard'))
     
     # ===== MAIN ROUTES =====
     
