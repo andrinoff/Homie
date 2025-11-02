@@ -333,7 +333,7 @@ def create_or_update_user(userinfo, access_control):
     username = userinfo.get('preferred_username', email.split('@')[0] if email else 'user')
     full_name = userinfo.get('name', '')
     oidc_sub = userinfo.get('sub')
-    is_admin = email in access_control['admin_emails'] if email else False
+    is_admin = False  # Simplified: no admin distinction needed
     
     try:
         # Try to find existing user

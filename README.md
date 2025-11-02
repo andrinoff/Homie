@@ -29,7 +29,7 @@ A simple family utility app for managing household tasks with secure authenticat
    - OIDC_BASE_URL=https://your-auth-provider.com
    - OIDC_CLIENT_ID=your-client-id
    - OIDC_CLIENT_SECRET=your-client-secret
-   - ADMIN_EMAILS=your-email@example.com
+   - ALLOWED_EMAILS=your-email@example.com
    ```
 
 4. **Start:**
@@ -47,7 +47,7 @@ Copy `.env.sample` to `.env` and fill in your values, or edit the environment va
 - `SECRET_KEY` - Random string for security
 - `OIDC_BASE_URL` - Your authentication provider URL  
 - `OIDC_CLIENT_ID` & `OIDC_CLIENT_SECRET` - From your OIDC provider
-- `ADMIN_EMAILS` - Who can access the app
+- `ALLOWED_EMAILS` - Who can access the app
 
 **Important:** Configure `{your-base-url}/auth/callback` as the callback URL in your OIDC provider.
 
@@ -67,6 +67,6 @@ python app.py
 **Common issues:**
 - **Can't login?** Check your OIDC callback URL is set correctly
 - **OIDC errors?** Verify your client ID/secret and base URL
-- **Access denied?** Add your email to `ADMIN_EMAILS`
+- **Access denied?** Add your email to `ALLOWED_EMAILS`
 
 The app uses OIDC auto-discovery but falls back to manual configuration if needed.

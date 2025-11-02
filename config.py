@@ -116,22 +116,13 @@ def get_oidc_configuration():
 def load_access_control():
     """Load access control configuration"""
     config = {
-        'admin_emails': [],
         'allowed_emails': []
     }
     
     # Load from environment variables
-    admin_emails_str = os.getenv('ADMIN_EMAILS', '')
-    if admin_emails_str:
-        config['admin_emails'] = [email.strip() for email in admin_emails_str.split(',')]
-    
     allowed_emails_str = os.getenv('ALLOWED_EMAILS', '')
     if allowed_emails_str:
         config['allowed_emails'] = [email.strip() for email in allowed_emails_str.split(',')]
-    
-    # If no allowed emails specified, use admin emails
-    if not config['allowed_emails']:
-        config['allowed_emails'] = config['admin_emails']
     
     # Add allowed domains for redirect validation
     base_url = os.getenv('BASE_URL', 'http://localhost:5000')
