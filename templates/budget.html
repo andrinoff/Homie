@@ -1,13 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Budget Tracker{% endblock %}
+{% block title %}Budget Tracker - Homie{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Budget Tracker</h1>
-        <a href="{{ url_for('bills.bills_list') }}" class="text-blue-600 dark:text-blue-400 hover:underline">
-            Back to Bills
-        </a>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Simple Header -->
+    <div class="mb-8 mt-4">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            <i class="fas fa-chart-pie mr-3 text-gray-600"></i>Budget Tracker
+        </h1>
+        <p class="mt-2 text-gray-600 dark:text-gray-400">
+            Monitor your spending and manage category budgets
+        </p>
     </div>
 
     <!-- Budget Summary Cards -->
@@ -32,12 +35,54 @@
         </div>
     </div>
 
-    <!-- Category Details Table -->
+    <!-- Category Details -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Category Breakdown</h2>
         </div>
-        <div class="overflow-x-auto">
+        
+        <!-- Mobile: Card Layout -->
+        <div class="block md:hidden divide-y divide-gray-200 dark:divide-gray-700">
+            {% for cat in analytics.categories %}
+            <div class="p-4">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="text-base font-semibold text-gray-900 dark:text-white">{{ cat.name }}</h3>
+                    <button onclick="editCategoryLimit({{ cat.id }}, '{{ cat.name }}', {{ cat.monthly_limit }})" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                        Edit
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-3 mb-3 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Budget</p>
+                        <p class="font-medium text-gray-900 dark:text-white">{{ currency }}{{ "%.2f"|format(cat.monthly_limit) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Spent</p>
+                        <p class="font-medium {% if cat.spent > cat.monthly_limit %}text-red-600 dark:text-red-400{% else %}text-gray-900 dark:text-white{% endif %}">
+                            {{ currency }}{{ "%.2f"|format(cat.spent) }}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Left</p>
+                        <p class="font-medium {% if cat.remaining < 0 %}text-red-600 dark:text-red-400{% else %}text-green-600 dark:text-green-400{% endif %}">
+                            {{ currency }}{{ "%.2f"|format(cat.remaining) }}
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center">
+                    <div class="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
+                        <div class="{% if cat.spent > cat.monthly_limit %}bg-red-600{% elif cat.percent_used > 80 %}bg-yellow-500{% else %}bg-green-600{% endif %} h-2 rounded-full" style="width: {{ cat.percent_used }}%"></div>
+                    </div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">{{ "%.0f"|format(cat.percent_used) }}%</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Desktop: Table Layout -->
+        <div class="hidden md:block overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead class="bg-gray-50 dark:bg-gray-900">
                     <tr>

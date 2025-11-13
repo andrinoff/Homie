@@ -188,12 +188,14 @@
                             </button>
                             <div id="bill-menu-{{ bill.id }}" class="action-menu hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 z-20 border border-gray-200 dark:border-gray-600">
                                 {% if view == 'unpaid' %}
+                                {% if not bill.is_recurring %}
                                 <button onclick="payBill({{ bill.id }}, this)"
                                         class="block w-full text-left px-4 py-3 text-sm text-green-600 dark:text-green-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-t-lg transition-colors">
                                     <i class="fas fa-check-circle mr-2"></i>Mark as Paid
                                 </button>
+                                {% endif %}
                                 <button onclick="editBill({{ bill.id }}, '{{ bill.bill_name }}', {{ bill.amount }}, {{ bill.due_day }})"
-                                        class="block w-full text-left px-4 py-3 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors border-t border-gray-200 dark:border-gray-600">
+                                        class="block w-full text-left px-4 py-3 text-sm text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors {% if not bill.is_recurring %}border-t border-gray-200 dark:border-gray-600{% else %}rounded-t-lg{% endif %}">
                                     <i class="fas fa-edit mr-2"></i>Edit Bill
                                 </button>
                                 {% endif %}
