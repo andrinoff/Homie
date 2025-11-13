@@ -37,10 +37,20 @@ def bills_list():
     # Get budget categories
     categories = conn.execute('SELECT name FROM budget_categories ORDER BY name').fetchall()
     
-    # Calculate monthly total
-    monthly_total = conn.execute('''
-        SELECT SUM(amount) as total FROM bills WHERE is_paid = FALSE
-    ''').fetchone()['total'] or 0
+    # Calculate monthly total based on recurrence patterns
+    monthly_total = 0
+    for bill in bills:
+        amount = bill['amount']
+        recurrence = bill['recurrence_pattern'] if bill['is_recurring'] else 'monthly'
+        
+        if recurrence == 'weekly':
+            # Weekly bills: multiply by 4 for monthly estimate
+            monthly_total += amount * 4
+        elif recurrence == 'yearly':
+            # Yearly bills: divide by 12 for monthly portion (excluded from monthly total)
+            monthly_total += amount / 12
+        else:  # monthly or non-recurring
+            monthly_total += amount
     
     conn.close()
     return render_template('bills.html', bills=bills, monthly_total=monthly_total, categories=categories, view='unpaid')
@@ -66,10 +76,20 @@ def paid_bills_list():
     # Get budget categories
     categories = conn.execute('SELECT name FROM budget_categories ORDER BY name').fetchall()
     
-    # Calculate total paid
-    monthly_total = conn.execute('''
-        SELECT SUM(amount) as total FROM bills WHERE is_paid = TRUE
-    ''').fetchone()['total'] or 0
+    # Calculate total paid based on recurrence patterns
+    monthly_total = 0
+    for bill in bills:
+        amount = bill['amount']
+        recurrence = bill['recurrence_pattern'] if bill['is_recurring'] else 'monthly'
+        
+        if recurrence == 'weekly':
+            # Weekly bills: multiply by 4 for monthly estimate
+            monthly_total += amount * 4
+        elif recurrence == 'yearly':
+            # Yearly bills: divide by 12 for monthly portion
+            monthly_total += amount / 12
+        else:  # monthly or non-recurring
+            monthly_total += amount
     
     conn.close()
     return render_template('bills.html', bills=bills, monthly_total=monthly_total, categories=categories, view='paid')
