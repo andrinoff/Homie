@@ -27,13 +27,6 @@ jobs:
       with:
         # Fetch tags when triggered by release event
         fetch-depth: 0
-    
-    - name: Debug - Show GitHub context
-      run: |
-        echo "Event name: ${{ github.event_name }}"
-        echo "Ref: ${{ github.ref }}"
-        echo "Ref name: ${{ github.ref_name }}"
-        echo "Release tag: ${{ github.event.release.tag_name }}"
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -58,11 +51,6 @@ jobs:
           type=sha
           type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
 
-    - name: Debug - Show metadata outputs
-      run: |
-        echo "Tags: ${{ steps.meta.outputs.tags }}"
-        echo "Labels: ${{ steps.meta.outputs.labels }}"
-
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
@@ -70,5 +58,4 @@ jobs:
         platforms: linux/amd64,linux/arm64
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
         labels: ${{ steps.meta.outputs.labels }}
