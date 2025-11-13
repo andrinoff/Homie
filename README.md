@@ -104,15 +104,3 @@ cp .env.sample .env
 # Edit .env with your settings
 python app.py
 ```
-
-## Need Help?
-
-**Common issues:**
-- **Can't login?** Check your OIDC callback URL is set correctly
-- **OIDC errors?** Verify your client ID/secret and base URL
-- **Access denied?** 
-  - If using groups: Ensure user is in an `ALLOWED_GROUPS` group
-  - If using emails: Add your email to `ALLOWED_EMAILS`
-  - Make sure your OIDC provider includes groups in the token (if using groups)
-
-The app uses OIDC auto-discovery but falls back to manual configuration if needed.
