@@ -25,7 +25,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        # Fetch tags when triggered by release event
+        # For release events, checkout the tag; otherwise use the default ref
+        ref: ${{ github.event.release.tag_name || github.ref }}
         fetch-depth: 0
 
     - name: Set up Docker Buildx
