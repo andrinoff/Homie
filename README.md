@@ -12,6 +12,8 @@ A simple family utility app for managing household tasks with secure authenticat
 
 <img width="1317" height="795" alt="image" src="https://github.com/user-attachments/assets/a14bf3cc-52e5-428c-9a63-4b9be12af3a7" />
 
+<img width="1246" height="634" alt="image" src="https://github.com/user-attachments/assets/4934bbc6-f66b-4d9c-82d7-45d951ec4d82" />
+
 ## Quick Start
 
 1. **Get the files:**
