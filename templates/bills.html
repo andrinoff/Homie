@@ -482,51 +482,47 @@ function payBill(billId, element) {
 
 // Override the deleteItem function for bills to trigger recount
 function deleteBill(billId, element) {
-    if (confirm('Are you sure you want to delete this bill?')) {
-        // Get the amount before deletion for smooth animation
-        const billRow = element.closest('.item-row');
-        const amountText = billRow.querySelector('.text-2xl.font-bold').textContent;
-        const deletedAmount = parseFloat(amountText.replace(CURRENCY, ''));
-        
-        fetch(`/api/bills/delete/${billId}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': '{{ csrf_token() }}'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Animate the row removal
-                billRow.style.transition = 'all 0.3s ease';
-                billRow.style.opacity = '0';
-                billRow.style.transform = 'translateX(-100%)';
+    // Get the amount before deletion for smooth animation
+    const billRow = element.closest('.item-row');
+    const amountText = billRow.querySelector('.text-2xl.font-bold').textContent;
+    const deletedAmount = parseFloat(amountText.replace(CURRENCY, ''));
+    
+    fetch(`/api/bills/delete/${billId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Animate the row removal
+            billRow.style.transition = 'all 0.3s ease';
+            billRow.style.opacity = '0';
+            billRow.style.transform = 'translateX(-100%)';
+            
+            setTimeout(() => {
+                billRow.remove();
+                // Trigger total recount animation
+                updateMonthlyTotal();
                 
-                setTimeout(() => {
-                    billRow.remove();
-                    // Trigger total recount animation
-                    updateMonthlyTotal();
-                    
-                    // Show empty state if no bills left
-                    if (document.querySelectorAll('.item-row').length === 0) {
-                        location.reload(); // Reload to show empty state
-                    }
-                }, 300);
-            } else {
-                alert(data.error || 'Error deleting bill');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error deleting bill');
-        });
-    }
+                // Show empty state if no bills left
+                if (document.querySelectorAll('.item-row').length === 0) {
+                    location.reload(); // Reload to show empty state
+                }
+            }, 300);
+        } else {
+            console.error(data.error || 'Error deleting bill');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 // Pay bill function
 async function payBill(billId, button) {
-    if (!confirm('Mark this bill as paid?')) return;
     
     toggleActionMenu(button.closest('.action-dropdown').querySelector('.action-menu').id);
     
@@ -551,11 +547,10 @@ async function payBill(billId, button) {
                 location.reload();
             }, 300);
         } else {
-            alert(data.error || 'Failed to mark bill as paid');
+            console.error(data.error || 'Failed to mark bill as paid');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to mark bill as paid');
     }
 }
 
@@ -634,7 +629,7 @@ async function addCategory() {
     const name = nameInput.value.trim();
     
     if (!name) {
-        alert('Please enter a category name');
+        nameInput.focus();
         return;
     }
     
@@ -653,13 +648,11 @@ async function addCategory() {
         if (response.ok) {
             nameInput.value = '';
             loadCategories();
-            alert('Category added successfully');
         } else {
-            alert(data.error || 'Failed to add category');
+            console.error(data.error || 'Failed to add category');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to add category');
     }
 }
 
@@ -684,21 +677,15 @@ async function editCategory(id, currentName) {
         
         if (response.ok) {
             loadCategories();
-            alert('Category updated successfully');
         } else {
-            alert(data.error || 'Failed to update category');
+            console.error(data.error || 'Failed to update category');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to update category');
     }
 }
 
 async function deleteCategory(id, name) {
-    if (!confirm(`Are you sure you want to delete the category "${name}"?`)) {
-        return;
-    }
-    
     try {
         const response = await fetch(`/api/categories/${id}`, {
             method: 'DELETE',
@@ -711,13 +698,14 @@ async function deleteCategory(id, name) {
         
         if (response.ok) {
             loadCategories();
-            alert('Category deleted successfully');
         } else {
-            alert(data.error || 'Failed to delete category');
+            // Show error for categories in use
+            if (data.error && data.error.includes('Cannot delete')) {
+                console.error(data.error);
+            }
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to delete category');
     }
 }
 </script>
