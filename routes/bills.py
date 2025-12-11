@@ -171,6 +171,67 @@ def add_bill():
         flash('Failed to add bill', 'error')
         return redirect(url_for('bills.bills_list'))
 
+@bills_bp.route('/edit_bill', methods=['POST'])
+@login_required
+@csrf_protect
+@feature_required('bills')
+def edit_bill():
+    """Edit an existing bill via form submission"""
+    try:
+        bill_id = request.form.get('bill_id')
+        bill_name = sanitize_input(request.form.get('bill_name', '').strip())
+        amount = request.form.get('amount')
+        due_day = request.form.get('due_day')
+        
+        if not all([bill_id, bill_name, amount, due_day]):
+            flash('All fields are required', 'error')
+            return redirect(url_for('bills.bills_list'))
+        
+        try:
+            bill_id = int(bill_id)
+            amount = float(amount)
+            due_day = int(due_day)
+        except (ValueError, TypeError):
+            flash('Invalid data provided', 'error')
+            return redirect(url_for('bills.bills_list'))
+        
+        if not (1 <= due_day <= 31):
+            flash('Due day must be between 1 and 31', 'error')
+            return redirect(url_for('bills.bills_list'))
+        
+        if amount < 0:
+            flash('Amount must be positive', 'error')
+            return redirect(url_for('bills.bills_list'))
+        
+        conn = get_db_connection()
+        
+        # Check if bill exists
+        bill = conn.execute('SELECT * FROM bills WHERE id = ?', (bill_id,)).fetchone()
+        if not bill:
+            conn.close()
+            flash('Bill not found', 'error')
+            return redirect(url_for('bills.bills_list'))
+        
+        # Update the bill
+        conn.execute('''
+            UPDATE bills 
+            SET bill_name = ?, amount = ?, due_day = ?
+            WHERE id = ?
+        ''', (bill_name, amount, due_day, bill_id))
+        
+        conn.commit()
+        conn.close()
+        
+        user_id = session['user']['id']
+        logger.info(f"User {user_id} updated bill {bill_id}")
+        flash('Bill updated successfully', 'success')
+        return redirect(url_for('bills.bills_list'))
+        
+    except Exception as e:
+        logger.error(f"Error updating bill: {e}")
+        flash('Failed to update bill', 'error')
+        return redirect(url_for('bills.bills_list'))
+
 @bills_bp.route('/api/bills/pay/<int:bill_id>', methods=['POST'])
 @api_auth_required
 @csrf_protect
