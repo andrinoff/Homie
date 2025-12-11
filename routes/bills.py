@@ -2,7 +2,7 @@
 Bills routes for Homie Flask application
 """
 from flask import Blueprint, render_template, request, redirect, url_for, jsonify, session, flash
-from authentication import login_required, api_auth_required
+from authentication import login_required, api_auth_required, feature_required
 from database import get_db_connection
 from security import csrf_protect, validate_ownership, sanitize_input
 from datetime import datetime
@@ -15,6 +15,7 @@ bills_bp = Blueprint('bills', __name__)
 
 @bills_bp.route('/bills')
 @login_required
+@feature_required('bills')
 def bills_list():
     """Display the bills page - unpaid bills"""
     # Process any recurring bills that need renewal
@@ -57,6 +58,7 @@ def bills_list():
 
 @bills_bp.route('/bills/paid')
 @login_required
+@feature_required('bills')
 def paid_bills_list():
     """Display all paid bills"""
     conn = get_db_connection()
@@ -96,6 +98,7 @@ def paid_bills_list():
 
 @bills_bp.route('/bills/budget')
 @login_required
+@feature_required('budget')
 def budget_dashboard():
     """Display budget analytics dashboard"""
     analytics = get_budget_analytics()
@@ -108,6 +111,7 @@ def budget_dashboard():
 
 @bills_bp.route('/bills/add', methods=['POST'])
 @login_required
+@feature_required('bills')
 def add_bill():
     """Add a new bill via form submission"""
     try:
@@ -170,6 +174,7 @@ def add_bill():
 @bills_bp.route('/api/bills/pay/<int:bill_id>', methods=['POST'])
 @api_auth_required
 @csrf_protect
+@feature_required('bills')
 def pay_bill(bill_id):
     """Mark a bill as paid"""
     try:
@@ -188,6 +193,7 @@ def pay_bill(bill_id):
 @bills_bp.route('/api/bills/add', methods=['POST'])
 @api_auth_required
 @csrf_protect
+@feature_required('bills')
 def add_bill_api():
     """Add a new bill via API"""
     try:
@@ -237,7 +243,8 @@ def add_bill_api():
 @bills_bp.route('/api/bills/delete/<int:bill_id>', methods=['DELETE'])
 @api_auth_required
 @csrf_protect
-def delete_bill(bill_id):
+@feature_required('bills')
+def delete_bill_api(bill_id):
     """Delete a bill"""
     try:
         conn = get_db_connection()
@@ -268,6 +275,7 @@ def delete_bill(bill_id):
 
 @bills_bp.route('/api/budget/categories', methods=['GET'])
 @api_auth_required
+@feature_required('budget')
 def get_budget_categories():
     """Get all budget categories"""
     try:
@@ -284,6 +292,7 @@ def get_budget_categories():
 @bills_bp.route('/api/budget/categories/<int:category_id>', methods=['PUT'])
 @api_auth_required
 @csrf_protect
+@feature_required('budget')
 def update_budget_category(category_id):
     """Update a budget category limit"""
     try:
@@ -363,7 +372,8 @@ def add_category():
 @bills_bp.route('/api/categories/<int:category_id>', methods=['PUT'])
 @api_auth_required
 @csrf_protect
-def edit_category(category_id):
+@feature_required('budget')
+def update_category(category_id):
     """Edit a bill category name"""
     try:
         data = request.get_json()
@@ -410,6 +420,7 @@ def edit_category(category_id):
 @bills_bp.route('/api/categories/<int:category_id>', methods=['DELETE'])
 @api_auth_required
 @csrf_protect
+@feature_required('budget')
 def delete_category(category_id):
     """Delete a bill category"""
     try:
