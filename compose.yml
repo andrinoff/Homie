@@ -4,19 +4,19 @@ services:
     container_name: homie
     restart: unless-stopped
     ports:
-      - "5000:5000"  # Change left port to match your PORT env var if different
+      - "5000:5000" # Change left port to match your PORT env var if different
     volumes:
-      - ./data:/app/data  # SQLite database storage
+      - ./data:/app/data # SQLite database storage
     environment:
       # ===== Flask Configuration =====
       - SECRET_KEY=your-secret-key-here-change-in-production
       - FLASK_DEBUG=false
       - BASE_URL=http://localhost:5000
       - PORT=5000
-      
+
       # ===== Database Configuration =====
       - DATABASE_PATH=/app/data/homie.db
-      
+
       # ===== OIDC Authentication Configuration =====
       # Enable OIDC authentication (set to false to disable OIDC and prepare for local accounts)
       - OIDC_ENABLED=true
@@ -24,32 +24,32 @@ services:
       - OIDC_BASE_URL=https://your-oidc-provider.com
       - OIDC_CLIENT_ID=your-client-id
       - OIDC_CLIENT_SECRET=your-client-secret
-      
+
       # ===== Access Control Configuration =====
       # NOTE: Use either ALLOWED_EMAILS or ALLOWED_GROUPS, not both. Groups take precedence.
       # Allowed email addresses (comma-separated list of who can access the app - used with OIDC)
       # - ALLOWED_EMAILS=user1@example.com,user2@example.com,admin@example.com
-      
+
       # Allowed groups from OIDC provider (comma-separated list)
       - ALLOWED_GROUPS=family,admin,users
-      
+
       # Admin email addresses (comma-separated list of users who can manage feature visibility)
       # - ADMIN_EMAILS=admin@example.com
-      
+
       # ===== Local Users Configuration (when OIDC is disabled) =====
       # Local users list (simple names or full format username:email:Full Name)
       # - USERS=Emma,Cam,Alex
-      
+
       # ===== Security Configuration =====
       # Enable secure cookies (set to true in production with HTTPS)
       - SESSION_COOKIE_SECURE=false
-      
+
       # ===== Logging Configuration =====
       - LOG_LEVEL=INFO
-      
+
       # ===== Docker Configuration =====
       - PYTHONUNBUFFERED=1
-    
+
     # Optional: Use .env file instead of inline environment variables
     # Uncomment the line below and create a .env file with your configuration
     # env_file: .env
